@@ -20,13 +20,24 @@ const MOCK_BANS: Ban[] = [
 export default function Moderation() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
+  const [isUnbanning, setIsUnbanning] = useState(false);
+  const [bannedList, setBannedList] = useState(MOCK_BANS);
   
-  const filtered = MOCK_BANS.filter(b => 
+  const filtered = bannedList.filter(b => 
     b.userId.includes(search) || b.username.toLowerCase().includes(search.toLowerCase())
   );
 
   const toggleSelect = (id: string) => {
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const handleUnban = () => {
+    setIsUnbanning(true);
+    setTimeout(() => {
+      setIsUnbanning(false);
+      setBannedList(prev => prev.filter(b => !selected.includes(b.userId)));
+      setSelected([]);
+    }, 1200);
   };
 
   return (
@@ -67,13 +78,20 @@ export default function Moderation() {
              <span className="text-white text-sm font-semibold">Выбрано: {selected.length}</span>
              <div className="flex items-center gap-2">
                <button 
-                 onClick={() => setSelected([])}
-                 className="px-3 py-1.5 text-xs font-semibold text-white/80 hover:text-white"
+                 onClick={() => !isUnbanning && setSelected([])}
+                 disabled={isUnbanning}
+                 className="px-3 py-1.5 text-xs font-semibold text-white/80 hover:text-white disabled:opacity-50"
                >
                  Отмена
                </button>
-               <button className="px-3 py-1.5 bg-white text-blue-600 text-xs font-bold rounded-lg shadow-sm">
-                 Разбанить всех
+               <button 
+                 onClick={handleUnban}
+                 disabled={isUnbanning}
+                 className="min-w-[124px] px-3 py-1.5 bg-white text-blue-600 text-xs font-bold rounded-lg shadow-sm flex items-center justify-center gap-2 disabled:bg-white/80"
+               >
+                 {isUnbanning ? (
+                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full" />
+                 ) : "Разбанить всех"}
                </button>
              </div>
            </motion.div>

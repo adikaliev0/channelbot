@@ -2,6 +2,7 @@ import { ShieldAlert, AlertTriangle, Fingerprint, MapPin, Users, History, Check,
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
 import { cn } from "../../lib/utils";
+import { EmptyState } from "../../components/ui/EmptyState";
 
 type Tab = 'Активные угрозы' | 'История';
 
@@ -62,27 +63,41 @@ export default function AntiFraud() {
 
       <div className="p-4 space-y-4">
         <AnimatePresence mode="popLayout">
-          {activeTab === 'Активные угрозы' && MOCK_ALERTS.map((alert) => (
-             <motion.div 
-               key={alert.id}
-               initial={{ opacity: 0, scale: 0.95 }}
-               animate={{ opacity: 1, scale: 1 }}
-               exit={{ opacity: 0, scale: 0.9 }}
-               layout
-             >
-               <FraudAlertCard alert={alert} />
-             </motion.div>
-          ))}
-          {activeTab === 'История' && (
-             <motion.div 
+          {activeTab === 'Активные угрозы' ? (
+            MOCK_ALERTS.length > 0 ? (
+              MOCK_ALERTS.map((alert) => (
+                <motion.div 
+                  key={alert.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  layout
+                >
+                  <FraudAlertCard alert={alert} />
+                </motion.div>
+              ))
+            ) : (
+              <EmptyState 
+                 icon={<ShieldAlert size={32} />}
+                 title="Угроз не обнаружено"
+                 description="Anti-Twin Engine не зафиксировал никаких аномалий за последнее время."
+                 fullHeight
+              />
+            )
+          ) : (
+            <motion.div 
                key="history"
                initial={{ opacity: 0 }}
                animate={{ opacity: 1 }}
-               className="text-center py-12 text-zinc-500"
-             >
-               <History size={32} className="mx-auto mb-3 opacity-20" />
-               <p className="text-sm">Нет недавней истории.</p>
-             </motion.div>
+               className="h-full"
+            >
+              <EmptyState 
+                 icon={<History size={32} />}
+                 title="История пуста"
+                 description="В архиве нет записей о заблокированных угрозах."
+                 fullHeight
+              />
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
@@ -92,11 +107,25 @@ export default function AntiFraud() {
 
 function FraudAlertCard({ alert }: { alert: Alert }) {
   const isHigh = alert.risk === 'Высокий';
+  const [actionState, setActionState] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [actionType, setActionType] = useState<'trust' | 'ban' | null>(null);
+
+  const handleAction = (type: 'trust' | 'ban') => {
+    setActionState('loading');
+    setActionType(type);
+    
+    setTimeout(() => {
+      setActionState('success');
+      // In a real app, this would probably remove the card or update its status.
+      // We will just leave it in success state to show the UI.
+    }, 1200);
+  };
 
   return (
     <div className={cn(
-      "rounded-2xl border overflow-hidden",
-      isHigh ? "bg-rose-950/20 border-rose-900/50" : "bg-amber-950/20 border-amber-900/50"
+      "rounded-2xl border overflow-hidden transition-all",
+      isHigh ? "bg-rose-950/20 border-rose-900/50" : "bg-amber-950/20 border-amber-900/50",
+      actionState === 'success' && "opacity-50 grayscale pointer-events-none"
     )}>
       {/* Header Info */}
       <div className="p-4 border-b border-zinc-800/50">
@@ -130,15 +159,41 @@ function FraudAlertCard({ alert }: { alert: Alert }) {
 
       {/* Action Bar */}
       <div className="p-3 border-t border-zinc-800/50 flex gap-2">
-        <button className="flex-1 bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 text-zinc-300 py-2 rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-1.5">
-          <Check size={14} className="text-emerald-400" /> Доверять
+        <button 
+          onClick={() => handleAction('trust')}
+          disabled={actionState !== 'idle'}
+          className={cn(
+            "flex-1 border py-2 rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-1.5",
+            actionType === 'trust' && actionState === 'loading' ? "bg-zinc-800 border-zinc-700 text-zinc-400" :
+            actionState === 'success' && actionType === 'trust' ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-500" :
+            "bg-zinc-900 border-zinc-700 hover:bg-zinc-800 text-zinc-300"
+          )}
+        >
+          {actionType === 'trust' && actionState === 'loading' ? (
+             <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-3.5 h-3.5 border-2 border-zinc-500 border-t-transparent rounded-full" />
+          ) : actionState === 'success' && actionType === 'trust' ? (
+             <><Check size={14} className="text-emerald-500" /> Готово</>
+          ) : (
+             <><Check size={14} className="text-emerald-400" /> Доверять</>
+          )}
         </button>
-        <button className={cn(
-          "flex-[2] py-2 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 border",
-          isHigh ? "bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20" : "bg-zinc-900 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-        )}>
-          <XCircle size={14} /> 
-          {alert.linkedAccounts > 1 ? `Забанить всех (${alert.linkedAccounts})` : 'Забанить'}
+        <button 
+          onClick={() => handleAction('ban')}
+          disabled={actionState !== 'idle'}
+          className={cn(
+            "flex-[2] py-2 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 border",
+            actionType === 'ban' && actionState === 'loading' ? "bg-rose-950 border-rose-900 text-rose-500" :
+            actionState === 'success' && actionType === 'ban' ? "bg-rose-500/20 border-rose-500/50 text-rose-500" :
+            isHigh ? "bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20" : "bg-zinc-900 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+          )}
+        >
+          {actionType === 'ban' && actionState === 'loading' ? (
+             <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-3.5 h-3.5 border-2 border-rose-500 border-t-transparent rounded-full" />
+          ) : actionState === 'success' && actionType === 'ban' ? (
+             <><XCircle size={14} /> Забанен</>
+          ) : (
+             <><XCircle size={14} /> {alert.linkedAccounts > 1 ? `Забанить всех (${alert.linkedAccounts})` : 'Забанить'}</>
+          )}
         </button>
       </div>
     </div>

@@ -27,24 +27,52 @@ export default function CreatePublication() {
     setStep(2);
   };
 
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const handlePublish = () => {
+    setIsPublishing(true);
+    setTimeout(() => {
+      setIsPublishing(false);
+      navigate(-1);
+    }, 1500);
+  };
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-zinc-950">
       {/* Header */}
-      <header className="flex-none pt-safe px-4 pb-3 flex items-center justify-between border-b border-zinc-800/50 bg-zinc-950">
+      <header className="flex-none pt-safe px-4 py-3 flex items-center justify-between bg-zinc-950 sticky top-0 z-10 border-b border-zinc-800/50">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => step > 1 ? setStep(1) : navigate(-1)}
-            className="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-400 hover:text-white"
+            disabled={isPublishing}
+            className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors disabled:opacity-50"
           >
             <X size={18} />
           </button>
-          <h1 className="text-lg font-semibold tracking-tight">
-            {step === 1 ? 'Новая публикация' : `Создать ${TYPES.find(t => t.id === type)?.label}`}
+          <h1 className="text-lg font-bold tracking-tight text-white">
+            {step === 1 ? 'Новая публикация' : (
+              type === 'giveaway' ? 'Новая раздача' :
+              type === 'raffle' ? 'Новый розыгрыш' :
+              type === 'quiz' ? 'Новый квиз' :
+              type === 'auction' ? 'Новый аукцион' :
+              type === 'post' ? 'Новый пост' : 'Новая публикация'
+            )}
           </h1>
         </div>
         {step === 2 && (
-          <button className="text-sm font-semibold text-blue-500 hover:text-blue-400 uppercase tracking-widest">
-            Опубликовать
+          <button 
+            onClick={handlePublish}
+            disabled={isPublishing}
+            className={cn(
+              "text-xs font-semibold px-4 py-2 rounded-full uppercase tracking-widest transition-colors flex items-center justify-center min-w-[140px]",
+              isPublishing 
+                ? "bg-zinc-800 text-zinc-400 cursor-not-allowed border border-zinc-700" 
+                : "text-white bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-900/20"
+            )}
+          >
+            {isPublishing ? (
+               <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-4 h-4 border-2 border-zinc-500 border-t-transparent rounded-full" />
+            ) : "Опубликовать"}
           </button>
         )}
       </header>

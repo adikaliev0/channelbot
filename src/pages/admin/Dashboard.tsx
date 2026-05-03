@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { 
   AlertTriangle, 
@@ -15,8 +16,16 @@ import {
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { Link } from "react-router";
+import { Skeleton, SkeletonRow, SkeletonCard } from "../../components/ui/Skeleton";
 
 export default function Dashboard() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <div className="flex flex-col min-h-full pb-8">
       {/* Header Sticky */}
@@ -31,12 +40,16 @@ export default function Dashboard() {
             <span className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">Система в сети</span>
           </div>
         </div>
-        <div className="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800">
-          <img 
-            src="https://api.dicebear.com/7.x/notionists/svg?seed=adixxlee" 
-            alt="Admin" 
-            className="w-8 h-8 rounded-full"
-          />
+        <div className="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800 overflow-hidden">
+          {loading ? (
+             <Skeleton className="w-full h-full" />
+          ) : (
+             <img 
+               src="https://api.dicebear.com/7.x/notionists/svg?seed=adixxlee" 
+               alt="Admin" 
+               className="w-full h-full object-cover"
+             />
+          )}
         </div>
       </header>
 
@@ -46,24 +59,30 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-zinc-100 uppercase tracking-widest">Требует Внимания</h2>
           </div>
-          <div className="grid gap-3">
-            <AttentionCard 
-              icon={<ShieldAlert className="text-amber-500" size={18} />}
-              title="Подозрительная активность"
-              description="3 аккаунта отмечены за одинаковые IP в текущей раздаче #402."
-              action="Проверить"
-              type="warning"
-              link="/admin/antifraud"
-            />
-            <AttentionCard 
-              icon={<AlertTriangle className="text-rose-500" size={18} />}
-              title="Закончились аккаунты"
-              description="В посте #401 закончились прикрепленные аккаунты, ожидают 12 пользователей."
-              action="Добавить"
-              type="danger"
-              link="/admin/publications/401"
-            />
-          </div>
+          {loading ? (
+            <div className="grid gap-3">
+               <SkeletonCard />
+            </div>
+          ) : (
+            <div className="grid gap-3">
+              <AttentionCard 
+                icon={<ShieldAlert className="text-amber-500" size={18} />}
+                title="Подозрительная активность"
+                description="3 аккаунта отмечены за одинаковые IP в текущей раздаче #402."
+                action="Проверить"
+                type="warning"
+                link="/admin/antifraud"
+              />
+              <AttentionCard 
+                icon={<AlertTriangle className="text-rose-500" size={18} />}
+                title="Закончились аккаунты"
+                description="В посте #401 закончились прикрепленные аккаунты, ожидают 12 пользователей."
+                action="Добавить"
+                type="danger"
+                link="/admin/publications/401"
+              />
+            </div>
+          )}
         </section>
 
         {/* Key Metrics */}
@@ -73,30 +92,41 @@ export default function Dashboard() {
             <Link to="/admin/publications" className="text-xs text-blue-500 hover:text-blue-400 font-medium">Все</Link>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <MetricCard 
-              title="Активных раздач" 
-              value="2" 
-              trend="+1" 
-              icon={<Gift size={16} className="text-purple-400" />} 
-            />
-            <MetricCard 
-              title="Активных розыгрышей" 
-              value="1" 
-              trend="без изм." 
-              icon={<Ticket size={16} className="text-blue-400" />} 
-            />
-            <MetricCard 
-              title="Посетителей (24ч)" 
-              value="4,209" 
-              trend="+12%" 
-              icon={<Users size={16} className="text-emerald-400" />} 
-            />
-            <MetricCard 
-              title="Заблокировано" 
-              value="84" 
-              trend="-5%" 
-              icon={<ShieldAlert size={16} className="text-rose-400" />} 
-            />
+            {loading ? (
+               <>
+                 <Skeleton className="h-24 rounded-2xl" />
+                 <Skeleton className="h-24 rounded-2xl" />
+                 <Skeleton className="h-24 rounded-2xl" />
+                 <Skeleton className="h-24 rounded-2xl" />
+               </>
+            ) : (
+               <>
+                 <MetricCard 
+                   title="Активных раздач" 
+                   value="2" 
+                   trend="+1" 
+                   icon={<Gift size={16} className="text-purple-400" />} 
+                 />
+                 <MetricCard 
+                   title="Активных розыгрышей" 
+                   value="1" 
+                   trend="без изм." 
+                   icon={<Ticket size={16} className="text-blue-400" />} 
+                 />
+                 <MetricCard 
+                   title="Посетителей (24ч)" 
+                   value="4,209" 
+                   trend="+12%" 
+                   icon={<Users size={16} className="text-emerald-400" />} 
+                 />
+                 <MetricCard 
+                   title="Заблокировано" 
+                   value="84" 
+                   trend="-5%" 
+                   icon={<ShieldAlert size={16} className="text-rose-400" />} 
+                 />
+               </>
+            )}
           </div>
         </section>
 
@@ -117,22 +147,31 @@ export default function Dashboard() {
             <h2 className="text-sm font-semibold text-zinc-100 uppercase tracking-widest">Активные события</h2>
           </div>
           <div className="space-y-2">
-            <ActiveEventRow 
-              id="GA-402" 
-              title="Раздача Premium аккаунтов"
-              type="Giveaway"
-              progress={80}
-              status="Волна 2"
-              participants={1250}
-            />
-            <ActiveEventRow 
-              id="RF-108" 
-              title="Еженедельный VIP Pass"
-              type="Raffle"
-              progress={45}
-              status="Сбор участников"
-              participants={3840}
-            />
+            {loading ? (
+               <>
+                 <SkeletonRow />
+                 <SkeletonRow />
+               </>
+            ) : (
+               <>
+                 <ActiveEventRow 
+                   id="GA-402" 
+                   title="Раздача Premium аккаунтов"
+                   type="Giveaway"
+                   progress={80}
+                   status="Волна 2"
+                   participants={1250}
+                 />
+                 <ActiveEventRow 
+                   id="RF-108" 
+                   title="Еженедельный VIP Pass"
+                   type="Raffle"
+                   progress={45}
+                   status="Сбор участников"
+                   participants={3840}
+                 />
+               </>
+            )}
           </div>
         </section>
 
@@ -141,21 +180,31 @@ export default function Dashboard() {
           <h2 className="text-sm font-semibold text-zinc-100 uppercase tracking-widest mb-3">Последние действия</h2>
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 overflow-hidden">
             <div className="space-y-4">
-              <ActivityItem 
-                time="10м назад" 
-                text="Раздача #401 автоматически завершена." 
-                type="success"
-              />
-              <ActivityItem 
-                time="1ч назад" 
-                text="Админ @adixxlee забанил 12 ботов." 
-                type="admin"
-              />
-              <ActivityItem 
-                time="2ч назад" 
-                text="Запущена новая волна в GA-402." 
-                type="system"
-              />
+              {loading ? (
+                <>
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-3/4" />
+                  <Skeleton className="h-8 w-5/6" />
+                </>
+              ) : (
+                <>
+                  <ActivityItem 
+                    time="10м назад" 
+                    text="Раздача #401 автоматически завершена." 
+                    type="success"
+                  />
+                  <ActivityItem 
+                    time="1ч назад" 
+                    text="Админ @adixxlee забанил 12 ботов." 
+                    type="admin"
+                  />
+                  <ActivityItem 
+                    time="2ч назад" 
+                    text="Запущена новая волна в GA-402." 
+                    type="system"
+                  />
+                </>
+              )}
             </div>
           </div>
         </section>

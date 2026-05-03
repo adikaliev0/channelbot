@@ -2,28 +2,31 @@ import { Outlet, NavLink } from "react-router";
 import { User, Key, Ticket, ShieldAlert } from "lucide-react";
 import { cn } from "../lib/utils";
 import { motion } from "motion/react";
+import { TelegramEnvGuard } from "../components/TelegramEnvGuard";
 
 export default function UserLayout() {
   return (
-    <div className="flex flex-col h-screen bg-zinc-950 text-zinc-50 font-sans selection:bg-blue-500/30 overflow-hidden">
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto no-scrollbar pb-[88px]">
-        <Outlet />
-      </main>
+    <TelegramEnvGuard>
+      <div className="flex flex-col h-screen bg-zinc-950 text-zinc-50 font-sans selection:bg-blue-500/30 overflow-hidden">
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto no-scrollbar pb-[88px]">
+          <Outlet />
+        </main>
 
-      {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-safe pt-2 bg-zinc-950/80 backdrop-blur-xl border-t border-zinc-800/50 flex justify-center">
-        <nav className="flex items-center justify-around w-full max-w-md gap-1">
-          <NavItem to="/user" icon={<User size={22} />} label="Кабинет" end />
-          {/* Mock routes for demo, they point to a demo event */}
-          <NavItem to="/user/event/ga-402" icon={<Key size={22} />} label="Раздачи" />
-          <NavItem to="/user/event/rf-108" icon={<Ticket size={22} />} label="Розыгрыши" />
-          
-          {/* Quick toggle to admin for demo purposes */}
-          <NavItem to="/admin" icon={<ShieldAlert size={22} />} label="Админ" />
-        </nav>
+        {/* Bottom Navigation Bar */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-safe pt-2 bg-zinc-950/90 backdrop-blur-2xl border-t border-zinc-800/80 flex justify-center shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
+          <nav className="flex items-center justify-around w-full max-w-md gap-1">
+            <NavItem to="/user" icon={<User size={22} />} label="Профиль" end />
+            {/* Mock routes for demo, pointing to demo events */}
+            <NavItem to="/user/event/ga-402" icon={<Key size={22} />} label="Раздачи" />
+            <NavItem to="/user/event/rf-108" icon={<Ticket size={22} />} label="Розыгрыши" />
+            
+            {/* Quick toggle to admin for demo purposes */}
+            <NavItem to="/admin" icon={<ShieldAlert size={22} />} label="Админ" />
+          </nav>
+        </div>
       </div>
-    </div>
+    </TelegramEnvGuard>
   );
 }
 

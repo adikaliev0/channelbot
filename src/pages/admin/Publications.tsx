@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Search, Filter, Gift, Ticket, HelpCircle, Gavel, LayoutList, ChevronRight, MoreVertical } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { Link } from "react-router";
+import { SkeletonRow } from "../../components/ui/Skeleton";
+import { EmptyState } from "../../components/ui/EmptyState";
 
 type PubType = 'Все' | 'Раздачи' | 'Розыгрыши' | 'Квизы' | 'Аукционы' | 'Посты';
 type PubCategory = 'All' | 'Giveaway' | 'Raffle' | 'Quiz' | 'Auction' | 'Post';
@@ -28,6 +30,13 @@ const MOCK_DATA = [
 export default function Publications() {
   const [activeTab, setActiveTab] = useState<PubType>('Все');
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    const t = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(t);
+  }, [activeTab]);
 
   const filtered = MOCK_DATA.filter(p => {
     const targetType = TAB_MAPPING[activeTab];
@@ -80,14 +89,25 @@ export default function Publications() {
 
       {/* List */}
       <div className="p-4 space-y-2">
-        <AnimatePresence mode="popLayout">
-          {filtered.length === 0 ? (
+        <AnimatePresence mode="popLayout" initial={false}>
+          {loading ? (
+             <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+               <SkeletonRow />
+               <SkeletonRow />
+               <SkeletonRow />
+               <SkeletonRow />
+             </motion.div>
+          ) : filtered.length === 0 ? (
             <motion.div 
+              key="empty"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="py-12 text-center flex flex-col items-center justify-center text-zinc-500"
             >
-              <LayoutList size={32} className="mb-3 opacity-20" />
-              <p className="text-sm">Публикации не найдены.</p>
+              <EmptyState 
+                icon={<LayoutList size={32} />}
+                title="Ничего не найдено"
+                description={search ? "Попробуйте изменить поисковой запрос" : `В категории «${activeTab}» пока нет публикаций`}
+                fullHeight
+              />
             </motion.div>
           ) : (
             filtered.map((pub) => (
